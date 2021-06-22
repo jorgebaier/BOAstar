@@ -1,3 +1,4 @@
 *.o
 boastar
 .vscode/*
+Maps/*.txt
