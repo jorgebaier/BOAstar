@@ -7,16 +7,20 @@ A Simple and Fast Bi-Objective Search Algorithm. ICAPS 2020: 143-151](https://oj
 
 The implementation contained in this package assumes the graph is explicitly given.
 
+# Benchmark files
+
+The map files are stored in a separate file that you can download [from here](https://drive.google.com/file/d/1n95JsiNVCwHpQvu9kWLAlPyOUFkw9_jP/view?usp=sharing).
+
 # Compilation
 
 Compile using `make`.
 
 # Running BOA*
 
-To run a single problem use  `./boastar [graph_file] [start_node] [goal_node]`. For example: `./boastar ./boastar Maps/NY-road-d.txt 1 500§`.
+To run a single problem use  `./boastar [graph_file] [start_node] [goal_node]`. For example: `./boastar ./boastar Maps/NY-road-d.txt 1 500`.
 
 # Running the Benchmarks
 
-To run the benchmark problems, do as follows:
+To run the benchmark problems, download and unzip the map files as indicated above. Then, run something like:
 
 `sh script.sh Maps/NY-road-d.txt Queries/NY-queries`
