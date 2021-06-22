@@ -12,14 +12,14 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-gnode *graph_node;
+gnode* graph_node;
 unsigned num_gnodes;
 unsigned int adjacent_table[MAXNODES][MAXNEIGH];
 unsigned int pred_adjacent_table[MAXNODES][MAXNEIGH];
 unsigned int goal, start;
-gnode *start_state;
-gnode *goal_state;
-snode *start_node;
+gnode* start_state;
+gnode* goal_state;
+snode* start_node;
 
 unsigned long long int stat_expansions = 0;
 unsigned long long int stat_generated = 0;
@@ -29,25 +29,22 @@ unsigned solutions[MAX_SOLUTIONS][2];
 unsigned nsolutions = 0;
 unsigned stat_pruned = 0;
 
-void initialize_parameters()
-{
+void initialize_parameters() {
     start_state = &graph_node[start];
     goal_state = &graph_node[goal];
     stat_percolations = 0;
 }
 
-int backward_dijkstra(int dim)
-{
+int backward_dijkstra(int dim) {
     for (int i = 0; i < num_gnodes; ++i)
         graph_node[i].key = LARGE;
     emptyheap_dij();
     goal_state->key = 0;
     insertheap_dij(goal_state);
 
-    while (topheap_dij() != NULL)
-    {
-        gnode *n;
-        gnode *pred;
+    while (topheap_dij() != NULL) {
+        gnode* n;
+        gnode* pred;
         short d;
         n = popheap_dij();
         if (dim == 1)
@@ -55,12 +52,10 @@ int backward_dijkstra(int dim)
         else
             n->h2 = n->key;
         ++stat_expansions;
-        for (d = 1; d < pred_adjacent_table[n->id][0] * 3; d += 3)
-        {
+        for (d = 1; d < pred_adjacent_table[n->id][0] * 3; d += 3) {
             pred = &graph_node[pred_adjacent_table[n->id][d]];
             int new_weight = n->key + pred_adjacent_table[n->id][d + dim];
-            if (pred->key > new_weight)
-            {
+            if (pred->key > new_weight) {
                 pred->key = new_weight;
                 insertheap_dij(pred);
             }
@@ -69,16 +64,14 @@ int backward_dijkstra(int dim)
     return 1;
 }
 
-snode *new_node()
-{
-    snode *state = (snode *)malloc(sizeof(snode));
+snode* new_node() {
+    snode* state = (snode*)malloc(sizeof(snode));
     state->heapindex = 0;
     return state;
 }
 
-int boastar()
-{
-    snode *recycled_nodes[MAX_RECYCLE];
+int boastar() {
+    snode* recycled_nodes[MAX_RECYCLE];
     int next_recycled = 0;
     nsolutions = 0;
     stat_pruned = 0;
@@ -95,16 +88,13 @@ int boastar()
 
     stat_expansions = 0;
 
-    while (topheap() != NULL)
-    {
-        snode *n = popheap(); //best node in open
+    while (topheap() != NULL) {
+        snode* n = popheap(); //best node in open
         short d;
 
-        if (n->g2 >= graph_node[n->state].gmin || n->g2 + graph_node[n->state].h2 >= minf_solution)
-        {
+        if (n->g2 >= graph_node[n->state].gmin || n->g2 + graph_node[n->state].h2 >= minf_solution) {
             stat_pruned++;
-            if (next_recycled < MAX_RECYCLE)
-            {
+            if (next_recycled < MAX_RECYCLE) {
                 recycled_nodes[next_recycled++] = n;
             }
             continue;
@@ -112,14 +102,12 @@ int boastar()
 
         graph_node[n->state].gmin = n->g2;
 
-        if (n->state == goal)
-        {
+        if (n->state == goal) {
             //printf("GOAL [%d,%d] nsolutions:%d expanded:%llu generated:%llu heapsize:%d pruned:%d\n", n->g1, n->g2, nsolutions, stat_expansions, stat_generated, sizeheap(), stat_pruned);
             solutions[nsolutions][0] = n->g1;
             solutions[nsolutions][1] = n->g2;
             nsolutions++;
-            if (nsolutions > MAX_SOLUTIONS)
-            {
+            if (nsolutions > MAX_SOLUTIONS) {
                 printf("Maximum number of solutions reached, increase MAX_SOLUTIONS!\n");
                 exit(1);
             }
@@ -130,9 +118,8 @@ int boastar()
 
         ++stat_expansions;
 
-        for (d = 1; d < adjacent_table[n->state][0] * 3; d += 3)
-        {
-            snode *succ;
+        for (d = 1; d < adjacent_table[n->state][0] * 3; d += 3) {
+            snode* succ;
             double newk1, newk2, newkey;
             int nsucc = adjacent_table[n->state][d];
             int cost = adjacent_table[n->state][d + 1];
@@ -149,12 +136,10 @@ int boastar()
             newk1 = newg1 + h1;
             newk2 = newg2 + h2;
 
-            if (next_recycled > 0)
-            { //to reuse pruned nodes in memory
+            if (next_recycled > 0) { //to reuse pruned nodes in memory
                 succ = recycled_nodes[--next_recycled];
             }
-            else
-            {
+            else {
                 succ = new_node();
             }
 
@@ -174,8 +159,7 @@ int boastar()
 }
 
 /* ------------------------------------------------------------------------------*/
-void call_boastar()
-{
+void call_boastar() {
     float runtime;
     struct timeval tstart, tend;
     unsigned long long min_cost;
@@ -199,10 +183,10 @@ void call_boastar()
     runtime = 1.0 * (tend.tv_sec - tstart.tv_sec) + 1.0 * (tend.tv_usec - tstart.tv_usec) / 1000000.0;
     //		printf("nsolutions:%d Runtime(ms):%f Generated: %llu statexpanded1:%llu\n", nsolutions, time_astar_first1*1000, stat_generated, stat_expansions);
     printf("%lld;%lld;%d;%f;%llu;%llu\n",
-           start_state->id + 1,
-           goal_state->id + 1,
-           nsolutions,
-           runtime * 1000,
-           stat_generated,
-           stat_expansions);
+        start_state->id + 1,
+        goal_state->id + 1,
+        nsolutions,
+        runtime * 1000,
+        stat_generated,
+        stat_expansions);
 }
