@@ -6,9 +6,9 @@
 
 extern gnode *graph_node;
 extern unsigned num_gnodes;
-extern unsigned int adjacent_table[MAXNODES][MAXNEIGH];
-extern unsigned int pred_adjacent_table[MAXNODES][MAXNEIGH];
-extern unsigned int goal, start; 
+extern unsigned adjacent_table[MAXNODES][MAXNEIGH];
+extern unsigned pred_adjacent_table[MAXNODES][MAXNEIGH];
+extern unsigned goal, start; 
 
 void call_boastar();
 

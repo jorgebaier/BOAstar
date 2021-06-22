@@ -14,9 +14,9 @@
 
 gnode* graph_node;
 unsigned num_gnodes;
-unsigned int adjacent_table[MAXNODES][MAXNEIGH];
-unsigned int pred_adjacent_table[MAXNODES][MAXNEIGH];
-unsigned int goal, start;
+unsigned adjacent_table[MAXNODES][MAXNEIGH];
+unsigned pred_adjacent_table[MAXNODES][MAXNEIGH];
+unsigned goal, start;
 gnode* start_state;
 gnode* goal_state;
 snode* start_node;

@@ -106,7 +106,7 @@ gnode* posheap_dij(int i) {
 // --------------------------    Binary Heap for BOA*  -----------------------------------------
 #define HEAPSIZE 40000000
 snode* heap[HEAPSIZE];
-long int heapsize = 0;
+unsigned long int heapsize = 0;
 
 // ---------------------------------------------------------------
 void percolatedown(int hole, snode* tmp) {

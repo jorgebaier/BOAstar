@@ -8,7 +8,7 @@
 
 #include "node.h"
 
-extern long int heapsize;
+extern unsigned long int heapsize;
 extern unsigned long int stat_percolations;
 
 void emptyheap_dij();
