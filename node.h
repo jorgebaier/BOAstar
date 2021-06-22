@@ -3,7 +3,6 @@
 // All rights reserved
 /////////////////////////////////////////////////////////////////////
 
-
 #ifndef MAZEH
 #define MAZEH
 
@@ -12,20 +11,20 @@
 struct gnode;
 typedef struct gnode gnode;
 
-struct gnode  // stores info needed for each graph node
+struct gnode // stores info needed for each graph node
 {
   long long int id;
   unsigned h1;
   unsigned h2;
   unsigned long long int key;
-  unsigned  gmin;
+  unsigned gmin;
   unsigned long heapindex;
 };
 
 struct snode;
 typedef struct snode snode;
 
-struct snode  // BOA*'s search nodes
+struct snode // BOA*'s search nodes
 {
   int state;
   unsigned g1;
