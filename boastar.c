@@ -121,12 +121,12 @@ int boastar() {
         for (d = 1; d < adjacent_table[n->state][0] * 3; d += 3) {
             snode* succ;
             double newk1, newk2, newkey;
-            int nsucc = adjacent_table[n->state][d];
-            int cost = adjacent_table[n->state][d + 1];
-            int arc_time = adjacent_table[n->state][d + 2];
+            unsigned nsucc = adjacent_table[n->state][d];
+            unsigned cost1 = adjacent_table[n->state][d + 1];
+            unsigned cost2 = adjacent_table[n->state][d + 2];
 
-            unsigned newg1 = n->g1 + cost;
-            unsigned newg2 = n->g2 + arc_time;
+            unsigned newg1 = n->g1 + cost1;
+            unsigned newg2 = n->g2 + cost2;
             unsigned h1 = graph_node[nsucc].h1;
             unsigned h2 = graph_node[nsucc].h2;
 
