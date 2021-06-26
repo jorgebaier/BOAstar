@@ -35,34 +35,6 @@ void initialize_parameters() {
     stat_percolations = 0;
 }
 
-int backward_dijkstra(int dim) {
-    for (int i = 0; i < num_gnodes; ++i)
-        graph_node[i].key = LARGE;
-    emptyheap_dij();
-    goal_state->key = 0;
-    insertheap_dij(goal_state);
-
-    while (topheap_dij() != NULL) {
-        gnode* n;
-        gnode* pred;
-        short d;
-        n = popheap_dij();
-        if (dim == 1)
-            n->h1 = n->key;
-        else
-            n->h2 = n->key;
-        ++stat_expansions;
-        for (d = 1; d < pred_adjacent_table[n->id][0] * 3; d += 3) {
-            pred = &graph_node[pred_adjacent_table[n->id][d]];
-            int new_weight = n->key + pred_adjacent_table[n->id][d + dim];
-            if (pred->key > new_weight) {
-                pred->key = new_weight;
-                insertheap_dij(pred);
-            }
-        }
-    }
-    return 1;
-}
 
 snode* new_node() {
     snode* state = (snode*)malloc(sizeof(snode));
@@ -70,7 +42,7 @@ snode* new_node() {
     return state;
 }
 
-int boastar() {
+int bod() {
     snode* recycled_nodes[MAX_RECYCLE];
     int next_recycled = 0;
     nsolutions = 0;
@@ -92,7 +64,7 @@ int boastar() {
         snode* n = popheap(); //best node in open
         short d;
 
-        if (n->g2 >= graph_node[n->state].gmin || n->g2 + graph_node[n->state].h2 >= minf_solution) {
+        if (n->g2 >= graph_node[n->state].gmin) {
             stat_pruned++;
             if (next_recycled < MAX_RECYCLE) {
                 recycled_nodes[next_recycled++] = n;
@@ -102,40 +74,21 @@ int boastar() {
 
         graph_node[n->state].gmin = n->g2;
 
-        if (n->state == goal) {
-            //printf("GOAL [%d,%d] nsolutions:%d expanded:%llu generated:%llu heapsize:%d pruned:%d\n", n->g1, n->g2, nsolutions, stat_expansions, stat_generated, sizeheap(), stat_pruned);
-            solutions[nsolutions][0] = n->g1;
-            solutions[nsolutions][1] = n->g2;
-            nsolutions++;
-            if (nsolutions > MAX_SOLUTIONS) {
-                printf("Maximum number of solutions reached, increase MAX_SOLUTIONS!\n");
-                exit(1);
-            }
-            if (minf_solution > n->g2)
-                minf_solution = n->g2;
-            continue;
-        }
-
         ++stat_expansions;
 
         for (d = 1; d < adjacent_table[n->state][0] * 3; d += 3) {
             snode* succ;
-            double newk1, newk2, newkey;
+            double newkey;
             unsigned nsucc = adjacent_table[n->state][d];
             unsigned cost1 = adjacent_table[n->state][d + 1];
             unsigned cost2 = adjacent_table[n->state][d + 2];
 
             unsigned newg1 = n->g1 + cost1;
             unsigned newg2 = n->g2 + cost2;
-            unsigned h1 = graph_node[nsucc].h1;
-            unsigned h2 = graph_node[nsucc].h2;
 
-            if (newg2 >= graph_node[nsucc].gmin || newg2 + h2 >= minf_solution)
+            if (newg2 >= graph_node[nsucc].gmin)
                 continue;
-
-            newk1 = newg1 + h1;
-            newk2 = newg2 + h2;
-
+ 
             if (next_recycled > 0) { //to reuse pruned nodes in memory
                 succ = recycled_nodes[--next_recycled];
             }
@@ -146,7 +99,7 @@ int boastar() {
             succ->state = nsucc;
             stat_generated++;
 
-            newkey = newk1 * (double)BASE + newk2;
+            newkey = newg1 * (double)BASE + newg2;
             succ->searchtree = n;
             succ->g1 = newg1;
             succ->g2 = newg2;
@@ -155,11 +108,11 @@ int boastar() {
         }
     }
 
-    return nsolutions > 0;
+    return 1;
 }
 
 /* ------------------------------------------------------------------------------*/
-void call_boastar() {
+void call_bod() {
     float runtime;
     struct timeval tstart, tend;
     unsigned long long min_cost;
@@ -169,23 +122,14 @@ void call_boastar() {
 
     gettimeofday(&tstart, NULL);
 
-    //Dijkstra h1
-    if (backward_dijkstra(1))
-        min_cost = start_state->h1;
-    //Dijkstra h2
-    if (backward_dijkstra(2))
-        min_time = start_state->h2;
-
-    //BOA*
-    boastar();
+    //BOD
+    bod();
 
     gettimeofday(&tend, NULL);
     runtime = 1.0 * (tend.tv_sec - tstart.tv_sec) + 1.0 * (tend.tv_usec - tstart.tv_usec) / 1000000.0;
-    //		printf("nsolutions:%d Runtime(ms):%f Generated: %llu statexpanded1:%llu\n", nsolutions, time_astar_first1*1000, stat_generated, stat_expansions);
-    printf("%lld;%lld;%d;%f;%llu;%llu\n",
+
+    printf("%lld;%f;%llu;%llu\n",
         start_state->id + 1,
-        goal_state->id + 1,
-        nsolutions,
         runtime * 1000,
         stat_generated,
         stat_expansions);

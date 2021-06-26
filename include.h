@@ -17,7 +17,7 @@
 
 
 #define LARGE  1000000000
-#define BASE   1000000
+#define BASE   10000000
 
 #define max(x,y) ( (x) > (y) ? (x) : (y) )
 #define min(x,y) ( (x) < (y) ? (x) : (y) )
