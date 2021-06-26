@@ -115,8 +115,6 @@ int bod() {
 void call_bod() {
     float runtime;
     struct timeval tstart, tend;
-    unsigned long long min_cost;
-    unsigned long long min_time;
 
     initialize_parameters();
 
