@@ -1,4 +1,4 @@
-obj/*
+obj/*.o
 boa
 bod
 .vscode/*
