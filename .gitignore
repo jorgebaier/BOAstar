@@ -1,4 +1,5 @@
 *.o
-boastar
+boa
+bod
 .vscode/*
 Maps/*.txt
