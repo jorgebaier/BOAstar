@@ -17,4 +17,4 @@ Compile using `make`.
 
 # Running BOA* and BOD
 
-To run a single problem use  `./boa [graph_file] [start_node] [goal_node]` for BOA* or `./bod [graph_file] [start_node]`, for BOD. For example: `./boastar ./boastar Maps/NY-road-d.txt 1 500`. 
+To run a single problem use  `./boa [graph_file] [start_node] [goal_node]` for BOA* or `./bod [graph_file] [start_node]`, for BOD. For example: `./boastar Maps/NY-road-d.txt 1 500`. 
