@@ -11,10 +11,6 @@
 struct gnode;
 typedef struct gnode gnode;
 
-struct snode;
-typedef struct snode snode;
-
-
 struct gnode // stores info needed for each graph node
 {
   long long int id;
@@ -23,21 +19,23 @@ struct gnode // stores info needed for each graph node
   unsigned long long int key;
   unsigned gmin;
   unsigned long heapindex;
-  snode *gopfirst;
-  snode *goplast;
+  snode * Gop_first; // pointers to gop list
+  snode * Gop_last;
 };
 
+struct snode;
+typedef struct snode snode;
 
-struct snode // BOA*'s search nodes
+struct snode // NAMOA*'s search nodes
 {
   int state;
   unsigned g1;
   unsigned g2;
   double key;
   unsigned long heapindex;
+  snode *next; // two pointers used to implement the gop doubly linked list for NAMOA*
+  snode *prev;
   snode *searchtree;
-  snode *gopnext;
-  snode *gopprev;
 };
 
 #endif

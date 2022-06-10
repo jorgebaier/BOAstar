@@ -6,7 +6,7 @@
 #include "heap.h"
 #include "node.h"
 #include "include.h"
-#include "boastar.h"
+#include "namoadr.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -23,12 +23,16 @@ snode* start_node;
 
 unsigned long long int stat_expansions = 0;
 unsigned long long int stat_generated = 0;
+unsigned long long int stat_gopoperations = 0;
 unsigned long long int minf_solution = LARGE;
-unsigned long long int stat_created = 0;
 
 unsigned solutions[MAX_SOLUTIONS][2];
+snode* recycled_nodes[MAX_RECYCLE];
+int next_recycled = 0;
+
 unsigned nsolutions = 0;
 unsigned stat_pruned = 0;
+unsigned stat_created = 0;
 
 void initialize_parameters() {
     start_state = &graph_node[start];
@@ -66,14 +70,99 @@ int backward_dijkstra(int dim) {
 }
 
 snode* new_node() {
-    snode* state = (snode*)malloc(sizeof(snode));
+	snode* state;
+	
+	if (next_recycled > 0) { //to reuse pruned nodes in memory
+		state = recycled_nodes[--next_recycled];
+     }
+     else{
+		state = (snode*)malloc(sizeof(snode));
+        ++stat_created;
+    }
     state->heapindex = 0;
+    state->gopnext = NULL;
+    state->gopprev = NULL;
     return state;
 }
 
-int boastar() {
-    snode* recycled_nodes[MAX_RECYCLE];
-    int next_recycled = 0;
+
+
+void addGop(snode *n){
+	if (graph_node[n->state].gopfirst == NULL){
+		graph_node[n->state].gopfirst = graph_node[n->state].goplast = n;
+		n->gopprev = n->gopnext = NULL;
+	}else{
+		graph_node[n->state].goplast->gopnext = n;
+		n->gopprev = graph_node[n->state].goplast;
+		graph_node[n->state].goplast = n;
+		n->gopnext = NULL;
+	}
+}
+
+
+void addGopFront(snode *n){
+	n->gopnext = graph_node[n->state].gopfirst;
+	if (graph_node[n->state].gopfirst != NULL)
+		graph_node[n->state].gopfirst->gopprev = n;
+	graph_node[n->state].gopfirst = n;
+	n->gopprev = NULL;	
+}
+
+
+void removeGop(snode *n){
+	if (n->gopprev != NULL)
+		n->gopprev->gopnext = n->gopnext; 
+	else
+		graph_node[n->state].gopfirst = n->gopnext;
+	if (n->gopnext != NULL)
+		n->gopnext->gopprev = n->gopprev;
+	else
+		graph_node[n->state].goplast = n->gopprev;
+}
+
+
+void UpdateOpen(snode *n){
+	snode *x = graph_node[n->state].gopfirst;
+	while (x != NULL){
+		if (x->g1 >= n->g1 && x->g2 >= n->g2){
+			deleteheap(x);
+			removeGop(x);	
+		}
+		x = x->gopnext;
+		stat_gopoperations++;
+	}
+	addGop(n);
+	insertheap(n);
+}	
+
+void moveTofront(snode *n){
+	if (graph_node[n->state].gopfirst != graph_node[n->state].goplast){
+		removeGop(n);
+		addGopFront(n);
+	}
+}
+
+
+short isDominated(unsigned g1,unsigned g2, unsigned n){
+	snode* x;
+	x = graph_node[n].gopfirst;
+	while (x != NULL){
+		if (x->g1 <= g1 && x->g2 <= g2){
+#ifdef M3 //in include.h
+			if (graph_node[n].gopfirst != x) 
+				moveTofront(x);
+#endif
+			return 1;	
+		}
+		stat_gopoperations++;
+		x = x->gopnext;
+	}
+return 0;
+}
+
+
+
+int namoadr() {
     nsolutions = 0;
     stat_pruned = 0;
 
@@ -87,14 +176,18 @@ int boastar() {
     start_node->key = 0;
     start_node->searchtree = NULL;
     insertheap(start_node);
+    graph_node[start].gopfirst = start_node;   
+
 
     stat_expansions = 0;
 
     while (topheap() != NULL) {
         snode* n = popheap(); //best node in open
         short d;
-
-        if (n->g2 >= graph_node[n->state].gmin || n->g2 + graph_node[n->state].h2 >= minf_solution) {
+		
+		removeGop(n);
+		
+        if (n->g2 + graph_node[n->state].h2 >= minf_solution) {
             stat_pruned++;
             if (next_recycled < MAX_RECYCLE) {
                 recycled_nodes[next_recycled++] = n;
@@ -132,19 +225,13 @@ int boastar() {
             unsigned h1 = graph_node[nsucc].h1;
             unsigned h2 = graph_node[nsucc].h2;
 
-            if (newg2 >= graph_node[nsucc].gmin || newg2 + h2 >= minf_solution)
+            if (newg2 >= graph_node[nsucc].gmin || newg2 + h2 >= minf_solution || isDominated(newg1,newg2,nsucc))
                 continue;
 
             newk1 = newg1 + h1;
             newk2 = newg2 + h2;
 
-            if (next_recycled > 0) { //to reuse pruned nodes in memory
-                succ = recycled_nodes[--next_recycled];
-            }
-            else {
-                succ = new_node();
-                ++stat_created;
-            }
+            succ = new_node();
 
             succ->state = nsucc;
             stat_generated++;
@@ -154,7 +241,7 @@ int boastar() {
             succ->g1 = newg1;
             succ->g2 = newg2;
             succ->key = newkey;
-            insertheap(succ);
+            UpdateOpen(succ);
         }
     }
 
@@ -162,7 +249,7 @@ int boastar() {
 }
 
 /* ------------------------------------------------------------------------------*/
-void call_boastar() {
+void call_namoadr() {
     float runtime;
     struct timeval tstart, tend;
     unsigned long long min_cost;
@@ -179,18 +266,19 @@ void call_boastar() {
     if (backward_dijkstra(2))
         min_time = start_state->h2;
 
-    //BOA*
-    boastar();
+    //NAMOA*dr
+    namoadr();
 
     gettimeofday(&tend, NULL);
     runtime = 1.0 * (tend.tv_sec - tstart.tv_sec) + 1.0 * (tend.tv_usec - tstart.tv_usec) / 1000000.0;
     //		printf("nsolutions:%d Runtime(ms):%f Generated: %llu statexpanded1:%llu\n", nsolutions, time_astar_first1*1000, stat_generated, stat_expansions);
-    printf("%lld;%lld;%d;%f;%llu;%llu;%llu\n",
+    printf("%lld;%lld;%d;%f;%llu;%llu;%u;%llu\n",
         start_state->id + 1,
         goal_state->id + 1,
         nsolutions,
         runtime * 1000,
         stat_generated,
         stat_expansions,
-        stat_created);
+        stat_created,
+        stat_gopoperations);
 }

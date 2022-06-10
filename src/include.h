@@ -22,4 +22,6 @@
 #define max(x,y) ( (x) > (y) ? (x) : (y) )
 #define min(x,y) ( (x) < (y) ? (x) : (y) )
 
+//#define M3 //to run with algorithm M3
+
 #endif

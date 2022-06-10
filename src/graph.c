@@ -48,6 +48,7 @@ void new_graph() {
 			graph_node[y].gmin = LARGE;
 			graph_node[y].h1 = LARGE;
 			graph_node[y].h2 = LARGE;
+			graph_node[y].gopfirst = NULL;
 		}
 	}
 }

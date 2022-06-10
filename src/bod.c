@@ -76,12 +76,12 @@ int bod() {
 
         ++stat_expansions;
 
-        for (d = 1; d < adjacent_table[n->state][0] * 3; d += 3) {
-            snode* succ;
+        for (d = 1; d < pred_adjacent_table[n->state][0] * 3; d += 3) {
+            snode* pred;
             double newkey;
-            unsigned nsucc = adjacent_table[n->state][d];
-            unsigned cost1 = adjacent_table[n->state][d + 1];
-            unsigned cost2 = adjacent_table[n->state][d + 2];
+            unsigned nsucc = pred_adjacent_table[n->state][d];
+            unsigned cost1 = pred_adjacent_table[n->state][d + 1];
+            unsigned cost2 = pred_adjacent_table[n->state][d + 2];
 
             unsigned newg1 = n->g1 + cost1;
             unsigned newg2 = n->g2 + cost2;
@@ -90,21 +90,21 @@ int bod() {
                 continue;
  
             if (next_recycled > 0) { //to reuse pruned nodes in memory
-                succ = recycled_nodes[--next_recycled];
+                pred = recycled_nodes[--next_recycled];
             }
             else {
-                succ = new_node();
+                pred = new_node();
             }
 
-            succ->state = nsucc;
+            pred->state = nsucc;
             stat_generated++;
 
             newkey = newg1 * (double)BASE + newg2;
-            succ->searchtree = n;
-            succ->g1 = newg1;
-            succ->g2 = newg2;
-            succ->key = newkey;
-            insertheap(succ);
+            pred->searchtree = n;
+            pred->g1 = newg1;
+            pred->g2 = newg2;
+            pred->key = newkey;
+            insertheap(pred);
         }
     }
 
