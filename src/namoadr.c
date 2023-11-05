@@ -202,7 +202,7 @@ int namoadr() {
             solutions[nsolutions][0] = n->g1;
             solutions[nsolutions][1] = n->g2;
             nsolutions++;
-            if (nsolutions > MAX_SOLUTIONS) {
+            if (nsolutions >= MAX_SOLUTIONS) {
                 printf("Maximum number of solutions reached, increase MAX_SOLUTIONS!\n");
                 exit(1);
             }
